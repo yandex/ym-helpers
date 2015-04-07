@@ -1,11 +1,11 @@
-var glob = require('glob'),
+var fs = require('fs'),
+    glob = require('glob'),
     modules = require('ym');
 
-modules.setOptions({
-    trackCircularDependencies: false,
-    allowMultipleDeclarations: false
-});
+var ym = { modules: modules };
 
-glob.sync(__dirname + '/modules/**/*.js').forEach(require);
+glob.sync(__dirname + '/src/modules/**/*.js').forEach(function (file) {
+    eval(fs.readFileSync(file).toString());
+});
 
 module.exports = modules;

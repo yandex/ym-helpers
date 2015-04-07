@@ -1,8 +1,4 @@
-if (typeof modules == 'undefined' && typeof require == 'function') {
-    var modules = require('ym');
-}
-
-modules.define("util.objectKeys", [], function (provide) {
+ym.modules.define("util.objectKeys", [], function (provide) {
     var objectKeys = (typeof Object.keys == 'function') ? Object.keys : function (object) {
         var keys = [];
         for (var name in object) {

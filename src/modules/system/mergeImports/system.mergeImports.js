@@ -1,10 +1,6 @@
-if (typeof modules == 'undefined' && typeof require == 'function') {
-    var modules = require('ym');
-}
-
 // TODO refactoring
 
-modules.define('system.mergeImports', [], function (provide) {
+ym.modules.define('system.mergeImports', [], function (provide) {
     function createNS (parentNs, path, data) {
         if (path) {
             var subObj = parentNs;

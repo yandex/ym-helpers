@@ -1,8 +1,4 @@
-if (typeof modules == 'undefined' && typeof require == 'function') {
-    var modules = require('ym');
-}
-
-modules.define("util.id", [], function (provide) {
+ym.modules.define("util.id", [], function (provide) {
     /**
      * @ignore
      * @name util.id

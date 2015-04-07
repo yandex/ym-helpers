@@ -1,8 +1,4 @@
-if (typeof modules == 'undefined' && typeof require == 'function') {
-    var modules = require('ym');
-}
-
-modules.define('util.defineClass', ['util.extend'], function (provide, extend) {
+ym.modules.define('util.defineClass', ['util.extend'], function (provide, extend) {
     function augment (childClass, parentClass, override) {
         childClass.prototype = (Object.create || function (obj) {
             function F () {}

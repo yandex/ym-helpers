@@ -1,14 +1,10 @@
-if (typeof modules == 'undefined' && typeof require == 'function') {
-    var modules = require('ym');
-}
-
 /**
  * @fileOverview
  * Парсер шаблонов.
  * Количество зависимостей было сведено к минимуму из-за того, что
  * тот класс используется в сборщике.
  */
-modules.define("template.Parser", [
+ym.modules.define("template.Parser", [
     "util.id"
 ], function (provide, utilId) {
 

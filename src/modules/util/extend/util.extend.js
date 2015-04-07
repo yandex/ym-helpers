@@ -1,8 +1,4 @@
-if (typeof modules == 'undefined' && typeof require == 'function') {
-    var modules = require('ym');
-}
-
-modules.define("util.extend", [
+ym.modules.define("util.extend", [
     "util.objectKeys"
 ], function (provide, objectKeys) {
     /**
@@ -36,7 +32,7 @@ modules.define("util.extend", [
      */
 
     function extend (target) {
-        if (project.DEBUG) {
+        if (ym.env.debug) {
             if (!target) {
                 throw new Error("util.extend: не передан параметр target");
             }
@@ -56,7 +52,7 @@ modules.define("util.extend", [
 
     // этот вариант функции использует Object.keys для обхода обьектов
     function nativeExtend (target) {
-        if (project.DEBUG) {
+        if (ym.env.debug) {
             if (!target) {
                 throw new Error("util.extend: не передан параметр target");
             }
