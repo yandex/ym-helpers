@@ -1,4 +1,4 @@
-ym.modules.define('system.createNs', function (provide) {
+ym.modules.define('system.createNs', [], function (provide) {
     provide(function (parentNs, path, data) {
         if (path) {
             var subObj = parentNs;
