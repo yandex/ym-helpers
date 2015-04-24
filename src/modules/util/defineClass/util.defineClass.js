@@ -19,11 +19,14 @@ ym.modules.define('util.defineClass', ['util.extend'], function (provide, extend
     }
 
     function createClass (childClass, parentClass, override) {
-        if (typeof parentClass == 'function') {
-            augment(childClass, parentClass, override);
-        } else {
-            override = parentClass;
-            extend(childClass.prototype, override);
+        var baseClassProvided = typeof parentClass == 'function';
+
+        if (baseClassProvided) {
+            augment(childClass, parentClass);
+        }
+
+        for (var i = baseClassProvided ? 2 : 1, l = arguments.length; i < l; i++) {
+            extend(childClass.prototype, arguments[i]);
         }
 
         return childClass;
