@@ -28,6 +28,14 @@ ym.modules.define("util.jsonp", [
      * @returns {vow.Promise} Объект-promise.
      */
     function jsonp (options) {
+        if (jsonp.handler) {
+            return jsonp.handler(options, makeRequest);
+        }
+
+        return makeRequest(options);
+    }
+
+    function makeRequest (options) {
         var callbackName,
             tag,
             checkResponse = typeof options.checkResponse == 'undefined' ?
