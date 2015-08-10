@@ -1,8 +1,8 @@
 ym.modules.define("util.jsonp", [
     "util.id",
-    "util.queryString',
+    "util.querystring",
     "util.script"
-], function (provide, utilId, queryString, utilScript) {
+], function (provide, utilId, querystring, utilScript) {
     var exceededError = { message: 'timeoutExceeded' },
         scriptError = { message: 'scriptError' },
         undefFunc = function () {};
@@ -42,7 +42,7 @@ ym.modules.define("util.jsonp", [
             checkResponse = typeof options.checkResponse == 'undefined' ?
                 true : options.checkResponse,
             responseFieldName = options.responseFieldName || 'response',
-            requestParamsStr = queryString.stringify(options.requestParams || {}),
+            requestParamsStr = querystring.stringify(options.requestParams || {}),
             deferred = ym.vow.defer(),
             promise = deferred.promise(),
             timeout = options.timeout || 30000,

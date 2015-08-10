@@ -2,7 +2,7 @@
  * @fileOverview
  * Query string library. Original code by Azat Razetdinov <razetdinov@ya.ru>.
  */
-ym.modules.define('util.queryString', [], function (provide) {
+ym.modules.define('util.querystring', [], function (provide) {
     function isArray (x) {
         return Object.prototype.toString.call(x) === '[object Array]';
     }
@@ -13,19 +13,19 @@ ym.modules.define('util.queryString', [], function (provide) {
          *
          * @function
          * @static
-         * @name util.queryString.parse
+         * @name util.querystring.parse
          * @param {String} string Query string.
+         * @param {String} [sep = '&'] Param-param delimiter.
+         * @param {String} [eq = '='] Name-value delimiter.
          * @param {Object} [options] Options.
-         * @param {String} [options.eq] Name-value delimiter.
-         * @param {String} [options.sep] Param-param delimiter.
-         * @param {Function} [options.unescape] Unescape function.
+         * @param {Function} [options.decodeURIComponent = decodeURIComponent] Unescape function.
          * @returns {Object} Query params.
          */
-        parse: function (string, options) {
+        parse: function (string, sep, eq, options) {
+            sep = sep || '&';
+            eq = eq || '=';
             options = options || {};
-            var eq = options.eq || '=',
-                sep = options.sep || '&',
-                unescape = options.unescape || decodeURIComponent,
+            var unescape = options.decodeURIComponent || decodeURIComponent,
                 result = {},
                 stringTokens = string.split(sep),
                 param, name, value;
@@ -55,23 +55,23 @@ ym.modules.define('util.queryString', [], function (provide) {
          * @static
          * @name util.queryString.stringify
          * @param {Object} params Query params.
+         * @param {String} [sep = '&'] Param-param delimiter.
+         * @param {String} [eq = '='] Name-value delimiter.
          * @param {Object} [options] Options.
-         * @param {String} [options.eq] Name-value delimiter.
-         * @param {String} [options.sep] Param-param delimiter.
-         * @param {Function} [options.escape] Escape function.
+         * @param {Function} [options.encodeURIComponent = encodeURIComponent] Escape function.
          * @returns {String} Query string.
          */
-        stringify: function (params, options) {
+        stringify: function (params, sep, eq, options) {
+            sep = sep || '&';
+            eq = eq || '=';
             options = options || {};
-            var eq = options.eq || '=',
-                sep = options.sep || '&',
-                escape = options.escape || encodeURIComponent,
+            var escape = options.encodeURIComponent || encodeURIComponent,
                 result = [],
                 name, value;
 
-            for (var name in params) {
+            for (name in params) {
                 if (params.hasOwnProperty(name)) {
-                    var value = params[name];
+                    value = params[name];
                     if (isArray(value)) {
                         for (var i = 0; i < value.length; ++i) {
                             if (typeof value != 'undefined') {
