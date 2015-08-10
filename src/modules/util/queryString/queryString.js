@@ -3,7 +3,7 @@
  * Query string library. Original code by Azat Razetdinov <razetdinov@ya.ru>.
  */
 ym.modules.define('util.queryString', [], function (provide) {
-    function isArray(x) {
+    function isArray (x) {
         return Object.prototype.toString.call(x) === '[object Array]';
     }
 
@@ -22,12 +22,12 @@ ym.modules.define('util.queryString', [], function (provide) {
          * @returns {Object} Query params.
          */
         parse: function (string, options) {
-            var eq = (options && options.eq) || '=',
-                sep = (options && options.sep) || '&',
-                unescape = options && typeof options.unescape === 'function' ?
-                    options.unescape : decodeURIComponent,
+            options = options || {};
+            var eq = options.eq || '=',
+                sep = options.sep || '&',
+                unescape = options.unescape || decodeURIComponent,
                 result = {},
-                stringTokens = String(string).split(sep),
+                stringTokens = string.split(sep),
                 param, name, value;
 
             for (var i = 0; i < stringTokens.length; ++i) {
@@ -59,31 +59,29 @@ ym.modules.define('util.queryString', [], function (provide) {
          * @param {String} [options.eq] Name-value delimiter.
          * @param {String} [options.sep] Param-param delimiter.
          * @param {Function} [options.escape] Escape function.
-         * @return {String} Query string.
+         * @returns {String} Query string.
          */
         stringify: function (params, options) {
-            var eq = (options && options.eq) || '=',
-                sep = (options && options.sep) || '&',
-                escape = options && typeof options.escape === 'function' ?
-                    options.escape : encodeURIComponent,
+            options = options || {};
+            var eq = options.eq || '=',
+                sep = options.sep || '&',
+                escape = options.escape || encodeURIComponent,
                 result = [],
                 name, value;
-
-            function addParam(result, name, value) {
-                if (typeof value !== 'undefined') {
-                    result.push(escape(name) + eq + escape(value));
-                }
-            }
 
             for (var name in params) {
                 if (params.hasOwnProperty(name)) {
                     var value = params[name];
                     if (isArray(value)) {
                         for (var i = 0; i < value.length; ++i) {
-                            addParam(result, name, value[i]);
+                            if (typeof value != 'undefined') {
+                                result.push(escape(name) + eq + escape(value));
+                            }
                         }
                     } else {
-                        addParam(result, name, value);
+                        if (typeof value != 'undefined') {
+                            result.push(escape(name) + eq + escape(value));
+                        }
                     }
                 }
             }
