@@ -1,7 +1,8 @@
 ym.modules.define("util.jsonp", [
     "util.id",
+    "util.querystring",
     "util.script"
-], function (provide, utilId, utilScript) {
+], function (provide, utilId, querystring, utilScript) {
     var exceededError = { message: 'timeoutExceeded' },
         scriptError = { message: 'scriptError' },
         undefFunc = function () {};
@@ -41,7 +42,7 @@ ym.modules.define("util.jsonp", [
             checkResponse = typeof options.checkResponse == 'undefined' ?
                 true : options.checkResponse,
             responseFieldName = options.responseFieldName || 'response',
-            requestParamsStr = getParamsStr(options.requestParams),
+            requestParamsStr = querystring.stringify(options.requestParams || {}),
             deferred = ym.vow.defer(),
             promise = deferred.promise(),
             timeout = options.timeout || 30000,
@@ -122,25 +123,6 @@ ym.modules.define("util.jsonp", [
             } catch (e) {
             }
         }, 500);
-    }
-
-    /**
-     * @ignore
-     * Создает строку с параметрами запроса
-     */
-    function getParamsStr (params) {
-        if (!params) {
-            return '';
-        }
-        var str = '';
-        for (var k in params) {
-            if (params.hasOwnProperty(k)) {
-                if (typeof params[k] != 'undefined') {
-                    str += '&' + k + '=' + encodeURIComponent(params[k]);
-                }
-            }
-        }
-        return str;
     }
 
     provide(jsonp);
