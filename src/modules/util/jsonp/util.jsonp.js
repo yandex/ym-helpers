@@ -42,7 +42,9 @@ ym.modules.define("util.jsonp", [
             checkResponse = typeof options.checkResponse == 'undefined' ?
                 true : options.checkResponse,
             responseFieldName = options.responseFieldName || 'response',
-            requestParamsStr = querystring.stringify(options.requestParams || {}),
+            requestParamsStr = options.requestParams ?
+                '&' + querystring.stringify(options.requestParams) :
+                '',
             deferred = ym.vow.defer(),
             promise = deferred.promise(),
             timeout = options.timeout || 30000,
