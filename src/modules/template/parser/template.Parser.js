@@ -1,15 +1,14 @@
 /**
  * @fileOverview
  * Парсер шаблонов.
- * Количество зависимостей было сведено к минимуму из-за того, что
- * тот класс используется в сборщике.
  */
-ym.modules.define("template.Parser", [
+modules.define("template.Parser", [
     "util.id"
 ], function (provide, utilId) {
 
     // TODO хорошо бы перенести в отдельный модуль. 
     // Главное не забыть в билдере подключить файл.
+    // TODO util.string
     var trimRegExp = /^\s+|\s+$/g,
         nativeTrim = typeof String.prototype.trim == 'function';
 
@@ -38,7 +37,7 @@ ym.modules.define("template.Parser", [
     }
 
     function removeQuotes (string) {
-        var firstSymbol = trim(string).charAt(0);
+        var firstSymbol = string.charAt(0);
         if (firstSymbol == "'" || firstSymbol == '"') {
             return string.slice(1, string.length - 1);
         }
@@ -167,7 +166,9 @@ ym.modules.define("template.Parser", [
      * @ignore
      * @class Парсер шаблонов.
      */
-    var Parser = function () { };
+    var Parser = function (filtersStorage) {
+        this._filtersStorage = filtersStorage;
+    };
 
     /**
      * @ignore
@@ -324,7 +325,7 @@ ym.modules.define("template.Parser", [
             // если значение в кавычках, парсим как строку
             if (
                 (v.charAt(0) == '"' && v.charAt(end) == '"') ||
-                (v.charAt(0) == '\'' && v.charAt(end) == '\'')
+                    (v.charAt(0) == '\'' && v.charAt(end) == '\'')
                 ) {
                 val = v.substring(1, end);
 
@@ -423,7 +424,7 @@ ym.modules.define("template.Parser", [
     Parser.prototype.scanners['{{'] = {
         stopToken: '}}',
         scan: function (tokens, text) {
-            var parts = trim(text).split('|'),
+            var parts = text.split('|'),
                 filters = [];
             for (var i = 1, l = parts.length; i < l; i++) {
                 var match = parts[i].split(':', 2),
@@ -439,7 +440,7 @@ ym.modules.define("template.Parser", [
                 }
                 filters.push([filter, filterValue]);
             }
-            tokens.push(SUBSTITUTE, [parts[0], filters]);
+            tokens.push(SUBSTITUTE, [trim(parts[0]), filters]);
         }
     };
 
@@ -479,50 +480,58 @@ ym.modules.define("template.Parser", [
 
     Parser.prototype.builders[SUBSTITUTE] = function (tree, parser) {
         // Для ключей вида object[0], object["test"][0] и т.д.
-        var keyWithSquareBracketsRegExp  = /\[\s*([0-9]+|\'[^\']+\'|\"[^\"]+\")\s*\]/g,
+        var keyWithSquareBracketsRegExp = /\[\s*(\d+|\'[^\']+\'|\"[^\"]+\")\s*\]/g,
             treeValue = tree.nodes[tree.left + 1],
             key = treeValue[0],
             value,
-            filters = treeValue[1],
             needEscape = true,
+            filters = treeValue[1],
             i,
             l;
 
         if (!keyWithSquareBracketsRegExp.test(key)) {
             value = tree.data.get(key);
         } else {
-            var path = key.match(keyWithSquareBracketsRegExp);
-            key = key.split(path[0])[0];
+            var path = key.match(keyWithSquareBracketsRegExp),
+                residue = key.split(path[0]),
+                query;
 
-            for (i = 0, l = path.length; i < l; i++) {
-                path[i] = trim(path[i].replace('[', '').replace(']', ''));
-                path[i] = removeQuotes(path[i]);
+            l = path.length;
+            key = residue[0];
 
+            query = key + '.' + removeQuotes(trim(path[0].replace('[', '').replace(']', '')));
+            residue = residue[1];
+
+            if (l > 1) {
+                for (i = 1; i < l; i++) {
+                    var segment = path[i];
+
+                    residue = residue.split(segment);
+
+                    segment = trim(segment.replace('[', '').replace(']', ''));
+                    segment = removeQuotes(segment);
+
+                    if (residue[0].length) {
+                        query += residue[0];
+                    }
+                    query += '.' + segment;
+                    residue = residue[1];
+                }
+            } else {
+                query += residue;
             }
-            value = tree.data.get(key + '.' + path.join('.'));
+
+            value = tree.data.get(query);
         }
 
         for (i = 0, l = filters.length; i < l; i++) {
-            var filter = filters[i];
-            switch (filter[0]) {
-                case 'default':
-                    if (typeof value == 'undefined') {
-                        key = filter[1];
-                        var word = removeQuotes(key);
-                        if (key.length == word.length) {
-                            if (!isNaN(word)) {
-                                value = word;
-                            } else {
-                                value = tree.data.get(key);
-                            }
-                        } else {
-                            value = word;
-                        }
-                    }
-                    break;
-                case 'raw':
-                    needEscape = false;
-                    break;
+            var filter = filters[i],
+                filterHandler;
+
+            if (this._filtersStorage && (filterHandler = this._filtersStorage.get(filter[0]))) {
+                value = filterHandler(tree.data, value, filter[1]);
+            } else if (filter[0] == 'raw') {
+                needEscape = false;
             }
         }
 
@@ -604,72 +613,72 @@ ym.modules.define("template.Parser", [
     };
 
     Parser.prototype.builders[IF] =
-    Parser.prototype.builders[ELSEIF] = function (tree, parser) {
-        var nodes = tree.nodes,
-            left = tree.left,
-            expression = nodes[left + 1],
-            result = evaluateExpression(expression, tree.data),
-            isTrue = !!result,
-            l,
-            i = tree.left + 2,
-            r = tree.right,
-            depth = 1,
-            elsePosition,
-            elseIfPosition,
-            endIfPosition,
-            node;
+        Parser.prototype.builders[ELSEIF] = function (tree, parser) {
+            var nodes = tree.nodes,
+                left = tree.left,
+                expression = nodes[left + 1],
+                result = evaluateExpression(expression, tree.data),
+                isTrue = !!result,
+                l,
+                i = tree.left + 2,
+                r = tree.right,
+                depth = 1,
+                elsePosition,
+                elseIfPosition,
+                endIfPosition,
+                node;
 
-        while (i < r) {
-            node = nodes[i];
-            if (node == IF) {
-                depth++;
-            } else if (node == ELSEIF) {
-                if (depth == 1 && !elseIfPosition) {
-                    elseIfPosition = i;
+            while (i < r) {
+                node = nodes[i];
+                if (node == IF) {
+                    depth++;
+                } else if (node == ELSEIF) {
+                    if (depth == 1 && !elseIfPosition) {
+                        elseIfPosition = i;
+                    }
+                } else if (node == ELSE) {
+                    if (depth == 1) {
+                        elsePosition = i;
+                    }
+                } else if (node == ENDIF) {
+                    if (!--depth) {
+                        endIfPosition = i;
+                    }
                 }
-            } else if (node == ELSE) {
-                if (depth == 1) {
-                    elsePosition = i;
+                if (endIfPosition) {
+                    break;
                 }
-            } else if (node == ENDIF) {
-                if (!--depth) {
-                    endIfPosition = i;
-                }
+                i += 2;
             }
-            if (endIfPosition) {
-                break;
-            }
-            i += 2;
-        }
 
-        if (isTrue) {
-            l = tree.left + 2;
-            r = elseIfPosition || elsePosition || endIfPosition;
-        } else {
-            if (elseIfPosition) {
-                l = elseIfPosition;
-                r = endIfPosition + 1;
+            if (isTrue) {
+                l = tree.left + 2;
+                r = elseIfPosition || elsePosition || endIfPosition;
             } else {
-                l = elsePosition ? elsePosition + 2 : endIfPosition;
-                r = endIfPosition;
+                if (elseIfPosition) {
+                    l = elseIfPosition;
+                    r = endIfPosition + 1;
+                } else {
+                    l = elsePosition ? elsePosition + 2 : endIfPosition;
+                    r = endIfPosition;
+                }
             }
-        }
 
-        if (l != r) {
-            var oldRight = tree.right,
-                oldEmpty = tree.empty;
+            if (l != r) {
+                var oldRight = tree.right,
+                    oldEmpty = tree.empty;
 
-            tree.left = l;
-            tree.right = r;
+                tree.left = l;
+                tree.right = r;
 
-            parser._buildTree(tree);
+                parser._buildTree(tree);
 
-            tree.empty = tree.empty && oldEmpty;
-            tree.right = oldRight;
-        }
+                tree.empty = tree.empty && oldEmpty;
+                tree.right = oldRight;
+            }
 
-        tree.left = endIfPosition + 2;
-    };
+            tree.left = endIfPosition + 2;
+        };
 
     provide(Parser);
 });
