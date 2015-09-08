@@ -2,7 +2,7 @@
  * @fileOverview
  * Парсер шаблонов.
  */
-modules.define("template.Parser", [
+ym.modules.define("template.Parser", [
     "util.id"
 ], function (provide, utilId) {
 
