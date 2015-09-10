@@ -167,7 +167,7 @@ ym.modules.define("template.Parser", [
      * @class Парсер шаблонов.
      */
     var Parser = function (filtersStorage) {
-        this._filtersStorage = filtersStorage;
+        this.filtersStorage = filtersStorage;
     };
 
     /**
@@ -528,7 +528,7 @@ ym.modules.define("template.Parser", [
             var filter = filters[i],
                 filterHandler;
 
-            if (this._filtersStorage && (filterHandler = this._filtersStorage.get(filter[0]))) {
+            if (parser.filtersStorage && (filterHandler = parser.filtersStorage.get(filter[0]))) {
                 value = filterHandler(tree.data, value, filter[1]);
             } else if (filter[0] == 'raw') {
                 needEscape = false;
