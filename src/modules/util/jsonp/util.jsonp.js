@@ -26,6 +26,7 @@ ym.modules.define("util.jsonp", [
      * Иначе promise будет отклонен со значением res.error.
      * @param {String} [options.responseFieldName = 'response'] Имя поля ответа сервера, содержащее
      * данные.
+     * @param {Function} [options.postprocessUrl] Функция для обработки URL перед отправкой запроса.
      * @returns {vow.Promise} Объект-promise.
      */
     function jsonp (options) {
@@ -74,12 +75,15 @@ ym.modules.define("util.jsonp", [
             };
         }
 
-        tag = utilScript.create(
-            options.url +
-                (/\?/.test(options.url) ? "&" : "?") + (options.paramName || 'callback') + '=' + (options.padding || callbackName) +
-                (options.noCache ? '&_=' + Math.floor(Math.random() * 10000000) : '') + requestParamsStr
-        );
+        var url = options.url +
+            (/\?/.test(options.url) ? "&" : "?") + (options.paramName || 'callback') + '=' + (options.padding || callbackName) +
+            (options.noCache ? '&_=' + Math.floor(Math.random() * 10000000) : '') + requestParamsStr;
 
+        if (options.postprocessUrl) {
+            url = options.postprocessUrl(url);
+        }
+
+        tag = utilScript.create(url);
         tag.onerror = function () {
             deferred.reject(scriptError);
         };
