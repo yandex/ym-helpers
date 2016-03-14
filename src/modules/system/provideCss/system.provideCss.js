@@ -12,7 +12,7 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
      */
         tag,
         waitForNextTick = false,
-        inState=0;
+        inState = 0;
 
     provide(function (cssText, callback) {
         newCssText += cssText + '\n/**/\n';
@@ -34,7 +34,7 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
         if (!tag) {
             tag = document.createElement("style");
             tag.type = "text/css";
-            tag.setAttribute && tag.setAttribute('data-ymaps','css-modules');
+            tag.setAttribute && tag.setAttribute('data-ymaps', 'css-modules');
         }
 
         if (tag.styleSheet) {
@@ -48,13 +48,13 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
             document.getElementsByTagName("head")[0].appendChild(tag);
             tag = null;
         }
-        inState=1;
+        inState = 1;
         newCssText = '';
-        var cb=callbacks;
-        callbacks=[];
+        var cb = callbacks;
+        callbacks = [];
         for (var i = 0, l = cb.length; i < l; ++i) {
             cb[i]();
         }
-        inState=0;
+        inState = 0;
     };
 });
