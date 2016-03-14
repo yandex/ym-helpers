@@ -12,13 +12,10 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
      */
         tag,
         waitForNextTick = false,
-        inState = 0,
-        svgSaltPlace = 'charset=svgsalt-' + (new Date());
+        inState = 0;
 
     provide(function (cssText, callback) {
-        // В dataURI SVG может быть специальное место, для вставки уникального блока
-        // в целях "пробития" кеша в ИЕ. Иначе некоторые обьекты (метки) не отображаются. MAPSAPI-9741.
-        newCssText += cssText.replace(/svgSaltSeed/g, svgSaltPlace) + '\n/**/\n';
+        newCssText += cssText + '\n/**/\n';
         callbacks.push(callback);
         //writeCSSModules();
         //return;
