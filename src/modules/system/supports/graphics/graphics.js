@@ -22,9 +22,9 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
         return WEBGL_CONTEXT_NAME;
     }
 
-    function testCanvas(sandbox, ctx){
-        sandbox.width=226;
-        sandbox.height=256;
+    function testCanvas (sandbox, ctx) {
+        sandbox.width = 226;
+        sandbox.height = 256;
 
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, 150, 150);
@@ -39,7 +39,7 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
 
         var data = ctx.getImageData(49, 49, 2, 2),
             test = [];
-        for(var i=0;i<16;i++){
+        for (var i = 0; i < 16; i++) {
             test.push(data.data[i]);
         }
         return test.join('x') == '0x0x0x0x0x0x0x0x0x0x0x0x0x255x0x255';
@@ -75,6 +75,11 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
                 var sandbox = document.createElement("canvas"),
                     context = ('getContext' in sandbox) ? sandbox.getContext(getWebglContextName(), glContextSettings) : false;
                 tests.webgl = context && typeof context.getParameter == "function";
+                if (tests.webgl) {
+                    // force lose context
+                    var lose = context.getExtension('WEBGL_lose_context');
+                    lose && lose.loseContext();
+                }
             }
             return tests.webgl;
         },
