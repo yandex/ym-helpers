@@ -14,7 +14,8 @@ ym.modules.define("util.jsonp", [
      * @param {Object} options Опции.
      * @param {String} options.url Адрес загрузки скрипта.
      * @param {String} [options.paramName = 'callback'] Название параметра для функции-обработчика.
-     * @param {String} [options.padding] Имя функции-обработчика.
+     * @param {String} [options.padding] Имя пользовательской функции-обработчика (функция не создаётся автоматически).
+     * @param {String} [options.paddingKey] Имя функции-обработчика (функция с указанным именем будет создана автоматически).
      * @param {Boolean} [options.noCache] Флаг, запрещающий кэширование скрипта. Добавляет случайное число
      * как параметр.
      * @param {Number} [options.timeout = 30000] Количество миллисекунд, в течение которых должен быть загружен скрипт.
@@ -58,7 +59,7 @@ ym.modules.define("util.jsonp", [
             };
 
         if (!options.padding) {
-            callbackName = utilId.prefix() + utilId.gen();
+            callbackName = options.paddingKey || (utilId.prefix() + utilId.gen());
             window[callbackName] = function (res) {
                 if (checkResponse) {
                     var error = !res || res.error ||
