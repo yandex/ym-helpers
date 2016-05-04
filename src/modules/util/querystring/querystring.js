@@ -59,6 +59,7 @@ ym.modules.define('util.querystring', [], function (provide) {
          * @param {String} [eq = '='] Name-value delimiter.
          * @param {Object} [options] Options.
          * @param {Function} [options.encodeURIComponent = encodeURIComponent] Escape function.
+         * @param {Function} [options.joinArrays = false] Concatenate array values in single parameter with ',' as delimiter.
          * @returns {String} Query string.
          */
         stringify: function (params, sep, eq, options) {
@@ -73,9 +74,13 @@ ym.modules.define('util.querystring', [], function (provide) {
                 if (params.hasOwnProperty(name)) {
                     value = params[name];
                     if (isArray(value)) {
-                        for (var i = 0; i < value.length; ++i) {
-                            if (typeof value != 'undefined') {
-                                result.push(escape(name) + eq + escape(value));
+                        if (options.joinArrays) {
+                            result.push(escape(name) + eq + escape(value.join(',')));
+                        } else {
+                            for (var i = 0; i < value.length; ++i) {
+                                if (typeof value[i] != 'undefined') {
+                                    result.push(escape(name) + eq + escape(value[i]));
+                                }
                             }
                         }
                     } else {
