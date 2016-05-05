@@ -45,7 +45,7 @@ ym.modules.define("util.jsonp", [
                 true : options.checkResponse,
             responseFieldName = options.responseFieldName || 'response',
             requestParamsStr = options.requestParams ?
-                '&' + querystring.stringify(options.requestParams) :
+                '&' + querystring.stringify(options.requestParams, null, null, { joinArrays: true }) :
                 '',
             deferred = ym.vow.defer(),
             promise = deferred.promise(),
