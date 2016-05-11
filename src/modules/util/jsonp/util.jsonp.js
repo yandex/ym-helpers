@@ -61,6 +61,11 @@ ym.modules.define("util.jsonp", [
 
         if (!options.padding) {
             callbackName = options.paddingKey || (utilId.prefix() + utilId.gen());
+
+            if (typeof window[callbackName] == 'function') {
+                return window[callbackName].promise;
+            }
+
             window[callbackName] = function (res) {
                 if (checkResponse) {
                     var error = !res || res.error ||
@@ -74,6 +79,8 @@ ym.modules.define("util.jsonp", [
                     deferred.resolve(res);
                 }
             };
+
+            window[callbackName].promise = promise;
         }
 
         var url = options.url +
@@ -89,7 +96,7 @@ ym.modules.define("util.jsonp", [
             deferred.reject(scriptError);
         };
 
-        promise.then(clearRequest, clearRequest);
+        promise.always(clearRequest);
 
         return promise;
     }
