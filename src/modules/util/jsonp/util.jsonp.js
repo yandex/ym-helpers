@@ -62,7 +62,7 @@ ym.modules.define("util.jsonp", [
         if (!options.padding) {
             callbackName = options.paddingKey || (utilId.prefix() + utilId.gen());
 
-            if (typeof window[callbackName] == 'function') {
+            if (typeof window[callbackName] == 'function' && window[callbackName].promise) {
                 return window[callbackName].promise;
             }
 
