@@ -14,7 +14,8 @@ ym.modules.define("util.jsonp", [
      * @param {Object} options Опции.
      * @param {String} options.url Адрес загрузки скрипта.
      * @param {String} [options.paramName = 'callback'] Название параметра для функции-обработчика.
-     * @param {String} [options.padding] Имя функции-обработчика.
+     * @param {String} [options.padding] Имя пользовательской функции-обработчика (функция не создаётся автоматически).
+     * @param {String} [options.paddingKey] Имя функции-обработчика (функция с указанным именем будет создана автоматически).
      * @param {Boolean} [options.noCache] Флаг, запрещающий кэширование скрипта. Добавляет случайное число
      * как параметр.
      * @param {Number} [options.timeout = 30000] Количество миллисекунд, в течение которых должен быть загружен скрипт.
@@ -26,6 +27,7 @@ ym.modules.define("util.jsonp", [
      * Иначе promise будет отклонен со значением res.error.
      * @param {String} [options.responseFieldName = 'response'] Имя поля ответа сервера, содержащее
      * данные.
+     * @param {Function} [options.postprocessUrl] Функция для обработки URL перед отправкой запроса.
      * @returns {vow.Promise} Объект-promise.
      */
     function jsonp (options) {
@@ -43,7 +45,7 @@ ym.modules.define("util.jsonp", [
                 true : options.checkResponse,
             responseFieldName = options.responseFieldName || 'response',
             requestParamsStr = options.requestParams ?
-                '&' + querystring.stringify(options.requestParams) :
+                '&' + querystring.stringify(options.requestParams, null, null, { joinArrays: true }) :
                 '',
             deferred = ym.vow.defer(),
             promise = deferred.promise(),
@@ -58,7 +60,12 @@ ym.modules.define("util.jsonp", [
             };
 
         if (!options.padding) {
-            callbackName = utilId.prefix() + utilId.gen();
+            callbackName = options.paddingKey || (utilId.prefix() + utilId.gen());
+
+            if (typeof window[callbackName] == 'function' && window[callbackName].promise) {
+                return window[callbackName].promise;
+            }
+
             window[callbackName] = function (res) {
                 if (checkResponse) {
                     var error = !res || res.error ||
@@ -72,19 +79,24 @@ ym.modules.define("util.jsonp", [
                     deferred.resolve(res);
                 }
             };
+
+            window[callbackName].promise = promise;
         }
 
-        tag = utilScript.create(
-            options.url +
-                (/\?/.test(options.url) ? "&" : "?") + (options.paramName || 'callback') + '=' + (options.padding || callbackName) +
-                (options.noCache ? '&_=' + Math.floor(Math.random() * 10000000) : '') + requestParamsStr
-        );
+        var url = options.url +
+            (/\?/.test(options.url) ? "&" : "?") + (options.paramName || 'callback') + '=' + (options.padding || callbackName) +
+            (options.noCache ? '&_=' + Math.floor(Math.random() * 10000000) : '') + requestParamsStr;
 
+        if (options.postprocessUrl) {
+            url = options.postprocessUrl(url);
+        }
+
+        tag = utilScript.create(url);
         tag.onerror = function () {
             deferred.reject(scriptError);
         };
 
-        promise.then(clearRequest, clearRequest);
+        promise.always(clearRequest);
 
         return promise;
     }
