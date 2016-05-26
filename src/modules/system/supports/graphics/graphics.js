@@ -2,21 +2,33 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
 
     var WEBGL_CONTEXT_NAME = null,
         glContextSettings = {
-            failIfMajorPerformanceCaveat: true // TODO: работа этого флага до конца не понятно
+            failIfMajorPerformanceCaveat: true,// TODO: работа этого флага до конца не понятна
+            antialias: false
         },
         tests = {};
 
-    function getWebglContextName () {
-        if (!WEBGL_CONTEXT_NAME && !!window.WebGLRenderingContext) {
-            var canvas = document.createElement("canvas"),
-                context = canvas.getContext("webgl", glContextSettings);
-            if (context && typeof context.getParameter == "function") {
-                WEBGL_CONTEXT_NAME = 'webgl';
-            } else {
-                context = canvas.getContext("experimental-webgl", glContextSettings); // IE
+    function getWebglContextName (activeTest) {
+        if (activeTest || !WEBGL_CONTEXT_NAME && !!window.WebGLRenderingContext) {
+            try {
+                var canvas = document.createElement("canvas"),
+                    context = canvas.getContext("webgl", glContextSettings);
                 if (context && typeof context.getParameter == "function") {
-                    WEBGL_CONTEXT_NAME = 'experimental-webgl';
+                    WEBGL_CONTEXT_NAME = 'webgl';
+                } else {
+                    context = canvas.getContext("experimental-webgl", glContextSettings); // IE
+                    if (context && typeof context.getParameter == "function") {
+                        WEBGL_CONTEXT_NAME = 'experimental-webgl';
+                    } else {
+                        WEBGL_CONTEXT_NAME = 'disabled';
+                    }
                 }
+                if (context) { // force lose context
+                    var lose = context.getExtension('WEBGL_lose_context');
+                    lose && lose.loseContext();
+                }
+            } catch (e) {
+                // suppress warnings at FF
+                WEBGL_CONTEXT_NAME = 'disabled';
             }
         }
         return WEBGL_CONTEXT_NAME;
@@ -59,27 +71,19 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
                 var sandbox = document.createElement('canvas'),
                     canvas = ('getContext' in sandbox) ? sandbox.getContext('2d') : null;
                 tests.canvas = canvas ? testCanvas(sandbox, canvas) : false;
-                //document.body.appendChild(sandbox);
             }
             return tests.canvas;
         },
 
         hasWebgl: function () {
-            if (!window.WebGLRenderingContext) {
+            if (!window.WebGLRenderingContext || ym.env.browser.webglBlacklisted) {
                 return false;
             }
             // Кешировать поддержку WebGL нельзя. Он может выключиться на лету.
             // В общем случае обратно уже не включается.
-            // TODO: рисовать плашку о падении WebGL, как это google maps делают.
             if (!('webgl' in tests) || tests['webgl']) {
-                var sandbox = document.createElement("canvas"),
-                    context = ('getContext' in sandbox) ? sandbox.getContext(getWebglContextName(), glContextSettings) : false;
-                tests.webgl = context && typeof context.getParameter == "function";
-                if (tests.webgl) {
-                    // force lose context
-                    var lose = context.getExtension('WEBGL_lose_context');
-                    lose && lose.loseContext();
-                }
+                var contextName = getWebglContextName(true);
+                tests.webgl = contextName != 'disabled'
             }
             return tests.webgl;
         },
