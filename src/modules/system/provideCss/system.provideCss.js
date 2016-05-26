@@ -16,9 +16,10 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
 
     provide(function (cssText, callback) {
         newCssText += cssText + '\n/**/\n';
-        callbacks.push(callback);
-        //writeCSSModules();
-        //return;
+        if (callback) {
+            callbacks.push(callback);
+        }
+
         if (!waitForNextTick) {
             nextTick(writeCSSModules);
             waitForNextTick = true;
@@ -31,10 +32,16 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
             return;
         }
 
+        var CSP_ENABLED = ym.env.server.params.follow_csp;
+
         if (!tag) {
-            tag = document.createElement("style");
+            tag = document.createElement(CSP_ENABLED ? "link" : "style");
             tag.type = "text/css";
+            tag.rel = "stylesheet";
             tag.setAttribute && tag.setAttribute('data-ymaps', 'css-modules');
+            if (CSP_ENABLED && CSP_ENABLED.nonceForStyle) {
+                tag.setAttribute && tag.setAttribute('nonce', CSP_ENABLED.nonceForStyle);
+            }
         }
 
         if (tag.styleSheet) {
@@ -44,9 +51,18 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
                 document.getElementsByTagName("head")[0].appendChild(tag);
             }
         } else {
-            tag.appendChild(document.createTextNode(newCssText));
-            document.getElementsByTagName("head")[0].appendChild(tag);
-            tag = null;
+            if (CSP_ENABLED) {
+                //cssText += newCssText;
+                var blob = new Blob([newCssText], {type: 'text/css'});
+                var tempUrl = (window.URL || window.webkitURL || window.mozURL).createObjectURL(blob);
+                tag.setAttribute("href", tempUrl);
+                document.getElementsByTagName("head")[0].appendChild(tag);
+                tag = null;
+            } else {
+                tag.appendChild(document.createTextNode(newCssText));
+                document.getElementsByTagName("head")[0].appendChild(tag);
+                tag = null;
+            }
         }
         inState = 1;
         newCssText = '';

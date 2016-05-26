@@ -3,10 +3,11 @@
  * Парсер шаблонов.
  */
 ym.modules.define("template.Parser", [
-    "util.id"
-], function (provide, utilId) {
+    "util.id",
+    "system.browser"
+], function (provide, utilId, browser) {
 
-    // TODO хорошо бы перенести в отдельный модуль. 
+    // TODO хорошо бы перенести в отдельный модуль.
     // Главное не забыть в билдере подключить файл.
     // TODO util.string
     var trimRegExp = /^\s+|\s+$/g,
@@ -101,13 +102,13 @@ ym.modules.define("template.Parser", [
         if (key.indexOf('.') > -1) {
             var parts = key.split('.'),
                 currentKey = "";
-            // Записываем все промежуточные значения. 
+            // Записываем все промежуточные значения.
             for (var i = 0, l = parts.length - 1; i < l; i++) {
                 currentKey += ((i === 0) ? "" : ".") + parts[i];
-                this._renderedValues[currentKey] = { value: this._dataManager.get(currentKey) };
+                this._renderedValues[currentKey] = {value: this._dataManager.get(currentKey)};
             }
         }
-        this._renderedValues[key] = { value: value };
+        this._renderedValues[key] = {value: value};
     };
 
     DataLogger.prototype.getRenderedValues = function () {
@@ -220,6 +221,7 @@ ym.modules.define("template.Parser", [
             left: 0,
             right: tree.length,
             empty: true,
+            flags: {},
             subnodes: [],
             sublayouts: [],
             strings: [],
@@ -325,8 +327,8 @@ ym.modules.define("template.Parser", [
             // если значение в кавычках, парсим как строку
             if (
                 (v.charAt(0) == '"' && v.charAt(end) == '"') ||
-                    (v.charAt(0) == '\'' && v.charAt(end) == '\'')
-                ) {
+                (v.charAt(0) == '\'' && v.charAt(end) == '\'')
+            ) {
                 val = v.substring(1, end);
 
                 // если цифра или true|false - как есть
@@ -419,7 +421,8 @@ ym.modules.define("template.Parser", [
         ENDIF = 2005,
         FOR = 2006,
         ENDFOR = 2007,
-        ELSEIF = 2008;
+        ELSEIF = 2008,
+        STYLE = 2009;
 
     Parser.prototype.scanners['{{'] = {
         stopToken: '}}',
@@ -474,6 +477,8 @@ ym.modules.define("template.Parser", [
                 case 'endfor':
                     tokens.push(ENDFOR, null);
                     break;
+                case 'style':
+                    tokens.push(STYLE, expression);
             }
         }
     };
@@ -580,7 +585,7 @@ ym.modules.define("template.Parser", [
                 params = beforeIn.split(','),
                 paramsLength = params.length;
 
-            // Создаем временное дерево для обработки блока. 
+            // Создаем временное дерево для обработки блока.
             var originRight = tree.right,
                 originEmpty = tree.empty,
                 originLogger = tree.data,
@@ -679,6 +684,19 @@ ym.modules.define("template.Parser", [
 
             tree.left = endIfPosition + 2;
         };
+
+    Parser.prototype.builders[STYLE] = function (tree, parser) {
+        var value = tree.nodes[tree.left + 1][0];
+        if (ym.env.server.params.follow_csp && !browser.oldIE) {
+            tree.strings.push('data-ymaps-style="' + value + '"');
+        } else {
+            tree.strings.push('style="' + value + '"');
+        }
+
+        tree.strings.push(value);
+        tree.left += 2;
+        tree.flags.containsInlineStyle = true;
+    };
 
     provide(Parser);
 });
