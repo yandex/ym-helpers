@@ -3,9 +3,8 @@
  * Парсер шаблонов.
  */
 ym.modules.define("template.Parser", [
-    "util.id",
-    "system.browser"
-], function (provide, utilId, browser) {
+    "util.id"
+], function (provide, utilId) {
 
     // TODO хорошо бы перенести в отдельный модуль.
     // Главное не забыть в билдере подключить файл.
@@ -685,9 +684,11 @@ ym.modules.define("template.Parser", [
             tree.left = endIfPosition + 2;
         };
 
+
+    var isIE = (ym.env.browser.name == 'MSIE');
     Parser.prototype.builders[STYLE] = function (tree, parser) {
         var value = tree.nodes[tree.left + 1][0];
-        if (ym.env.server.params.follow_csp && !browser.oldIE) {
+        if (ym.env.server.params.follow_csp && !isIE) {
             tree.strings.push('data-ymaps-style="' + value + '"');
         } else {
             tree.strings.push('style="' + value + '"');
