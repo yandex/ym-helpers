@@ -685,18 +685,17 @@ ym.modules.define("template.Parser", [
         };
 
 
-    var isIE = (ym.env && ym.env.browser.name == 'MSIE');
     Parser.prototype.builders[STYLE] = function (tree, parser) {
         var value = tree.nodes[tree.left + 1][0];
-        if (ym.env.server.params.follow_csp && !isIE) {
+        if (ym.env.server.params.csp && ym.env.browser.name !== 'MSIE') {
             tree.strings.push('data-ymaps-style="' + value + '"');
+            tree.flags.containsInlineStyle = true;
         } else {
             tree.strings.push('style="' + value + '"');
         }
 
         tree.strings.push(value);
         tree.left += 2;
-        tree.flags.containsInlineStyle = true;
     };
 
     provide(Parser);
