@@ -12,7 +12,10 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
      */
         tag,
         waitForNextTick = false,
-        URL = window.URL || window.webkitURL || window.mozURL;
+        URL = window.URL || window.webkitURL || window.mozURL,
+        csp = ym.env.server.params.csp,
+        pasteAsLink = csp && !csp.style_nonce;
+
 
     provide(function (cssText, callback) {
         newCssText += cssText + '\n/**/\n';
@@ -32,15 +35,13 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
             return;
         }
 
-        var CSP_ENABLED = ym.env.server.params.csp;
-
         if (!tag) {
-            tag = document.createElement(CSP_ENABLED ? "link" : "style");
+            tag = document.createElement(pasteAsLink ? "link" : "style");
             tag.type = "text/css";
             tag.rel = "stylesheet";
             tag.setAttribute && tag.setAttribute('data-ymaps', 'css-modules');
-            if (CSP_ENABLED && CSP_ENABLED.style_nonce) {
-                tag.setAttribute && tag.setAttribute('nonce', CSP_ENABLED.style_nonce);
+            if (csp && csp.style_nonce) {
+                tag.setAttribute && tag.setAttribute('nonce', csp.style_nonce);
             }
         }
 
@@ -51,7 +52,7 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
                 document.getElementsByTagName("head")[0].appendChild(tag);
             }
         } else {
-            if (CSP_ENABLED) {
+            if (pasteAsLink) {
                 var blob = new Blob([newCssText], {type: 'text/css'}),
                     tempUrl = URL.createObjectURL(blob);
                 tag.setAttribute("href", tempUrl);
@@ -67,5 +68,5 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
         for (var i = 0, l = cb.length; i < l; ++i) {
             cb[i]();
         }
-    };
+    }
 });
