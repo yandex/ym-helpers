@@ -12,13 +12,17 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
      */
         tag,
         waitForNextTick = false,
-        inState = 0;
+        URL = window.URL || window.webkitURL || window.mozURL,
+        csp = ym.env.server.params.csp,
+        pasteAsLink = csp && !csp.style_nonce;
+
 
     provide(function (cssText, callback) {
         newCssText += cssText + '\n/**/\n';
-        callbacks.push(callback);
-        //writeCSSModules();
-        //return;
+        if (callback) {
+            callbacks.push(callback);
+        }
+
         if (!waitForNextTick) {
             nextTick(writeCSSModules);
             waitForNextTick = true;
@@ -32,9 +36,13 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
         }
 
         if (!tag) {
-            tag = document.createElement("style");
+            tag = document.createElement(pasteAsLink ? "link" : "style");
             tag.type = "text/css";
+            tag.rel = "stylesheet";
             tag.setAttribute && tag.setAttribute('data-ymaps', 'css-modules');
+            if (csp && csp.style_nonce) {
+                tag.setAttribute && tag.setAttribute('nonce', csp.style_nonce);
+            }
         }
 
         if (tag.styleSheet) {
@@ -44,17 +52,21 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
                 document.getElementsByTagName("head")[0].appendChild(tag);
             }
         } else {
-            tag.appendChild(document.createTextNode(newCssText));
+            if (pasteAsLink) {
+                var blob = new Blob([newCssText], {type: 'text/css'}),
+                    tempUrl = URL.createObjectURL(blob);
+                tag.setAttribute("href", tempUrl);
+            } else {
+                tag.appendChild(document.createTextNode(newCssText));
+            }
             document.getElementsByTagName("head")[0].appendChild(tag);
             tag = null;
         }
-        inState = 1;
         newCssText = '';
         var cb = callbacks;
         callbacks = [];
         for (var i = 0, l = cb.length; i < l; ++i) {
             cb[i]();
         }
-        inState = 0;
-    };
+    }
 });
