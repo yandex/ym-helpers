@@ -1,14 +1,14 @@
 ym.modules.define('system.supports.graphics', [], function (provide) {
 
-    var WEBGL_CONTEXT_NAME = null,
+    var WEBGL_CONTEXT_NAME = false,
         glContextSettings = {
-            failIfMajorPerformanceCaveat: true,// TODO: работа этого флага до конца не понятна
-            antialias: false
+            failIfMajorPerformanceCaveat: true, // just to be sure
+            antialias: false                    // Firefox does not like offscreen canvas with AA
         },
         tests = {};
 
     function getWebglContextName (activeTest) {
-        if (activeTest || !WEBGL_CONTEXT_NAME && !!window.WebGLRenderingContext) {
+        if (activeTest || WEBGL_CONTEXT_NAME === false && !!window.WebGLRenderingContext) {
             try {
                 var canvas = document.createElement("canvas"),
                     context = canvas.getContext("webgl", glContextSettings);
@@ -19,21 +19,22 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
                     if (context && typeof context.getParameter == "function") {
                         WEBGL_CONTEXT_NAME = 'experimental-webgl';
                     } else {
-                        WEBGL_CONTEXT_NAME = 'disabled';
+                        WEBGL_CONTEXT_NAME = null;
                     }
                 }
-                if (context) { // force lose context
+                if (context) { // force lose and cleanup context
                     var lose = context.getExtension('WEBGL_lose_context');
                     lose && lose.loseContext();
                 }
             } catch (e) {
                 // suppress warnings at FF
-                WEBGL_CONTEXT_NAME = 'disabled';
+                WEBGL_CONTEXT_NAME = null;
             }
         }
         return WEBGL_CONTEXT_NAME;
     }
 
+    // Test globalCompositeOperation to work properly
     function testCanvas (sandbox, ctx) {
         sandbox.width = 226;
         sandbox.height = 256;
@@ -61,7 +62,7 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
         hasSvg: function () {
             if (!('svg' in tests)) {
                 tests.svg = document.implementation &&
-                document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
+                    document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
             }
             return tests.svg;
         },
@@ -76,12 +77,10 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
         },
 
         hasWebgl: function () {
-            if (!window.WebGLRenderingContext || ym.env.browser.webglBlacklisted) {
+            if (!window.WebGLRenderingContext || this.isWebglBlacklisted()) {
                 return false;
             }
-            // Кешировать поддержку WebGL нельзя. Он может выключиться на лету.
-            // В общем случае обратно уже не включается.
-            if (!('webgl' in tests) || tests['webgl']) {
+            if (!('webgl' in tests)) {
                 var contextName = getWebglContextName(true);
                 tests.webgl = contextName != 'disabled'
             }
@@ -102,6 +101,21 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
                 tests.vml = supported;
             }
             return tests.vml;
+        },
+
+        isWebglBlacklisted: function () {
+            var browser = ym.env.browser,
+                webglBrowserBlacklist = {
+                    'Samsung Internet': true, // unstable
+                    'AndroidBrowser': true    // unstable
+                }, isOldAndroid = browser.engine == "Webkit" && (+browser.engineVersion < +537), // unstable
+                isOldOperatingSystem = !/^Windows (XP|Vista|Server 2003)/.test(browser.osName); // deprecated
+
+            return !!(isOldAndroid || isOldOperatingSystem || webglBrowserBlacklist[browser.name]);
+        },
+
+        redetect: function () {
+            tests = {};
         },
 
         getWebglContextName: getWebglContextName
