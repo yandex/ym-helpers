@@ -30,7 +30,7 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
 
     function detectWebGl () {
         if (!isWebGlCapable()) {
-            return false;
+            return null;
         }
 
         var contextName;
