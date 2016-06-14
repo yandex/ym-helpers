@@ -1,39 +1,60 @@
 ym.modules.define('system.supports.graphics', [], function (provide) {
 
-    var WEBGL_CONTEXT_NAME = null,
-        glContextSettings = {
-            failIfMajorPerformanceCaveat: true,// TODO: работа этого флага до конца не понятна
-            antialias: false
+    var webGlContextSettings = {
+            failIfMajorPerformanceCaveat: true, // just to be sure
+            antialias: false                    // Firefox does not like offscreen canvas with AA
         },
         tests = {};
 
-    function getWebglContextName (activeTest) {
-        if (activeTest || !WEBGL_CONTEXT_NAME && !!window.WebGLRenderingContext) {
-            try {
-                var canvas = document.createElement("canvas"),
-                    context = canvas.getContext("webgl", glContextSettings);
-                if (context && typeof context.getParameter == "function") {
-                    WEBGL_CONTEXT_NAME = 'webgl';
-                } else {
-                    context = canvas.getContext("experimental-webgl", glContextSettings); // IE
-                    if (context && typeof context.getParameter == "function") {
-                        WEBGL_CONTEXT_NAME = 'experimental-webgl';
-                    } else {
-                        WEBGL_CONTEXT_NAME = 'disabled';
-                    }
-                }
-                if (context) { // force lose context
-                    var lose = context.getExtension('WEBGL_lose_context');
-                    lose && lose.loseContext();
-                }
-            } catch (e) {
-                // suppress warnings at FF
-                WEBGL_CONTEXT_NAME = 'disabled';
+    function isWebGlCapable () {
+        // Test system support
+        if (window.WebGLRenderingContext) {
+            // test blacklists
+            var browser = ym.env.browser,
+                webglBrowserBlacklist = {
+                    'Samsung Internet': true, // unstable
+                    'AndroidBrowser': true    // unstable
+                },
+                isOldAndroid = browser.engine == "Webkit" && (+browser.engineVersion < +537), // unstable
+                isOldOperatingSystem = /^Windows (XP|Vista|Server 2003)/.test(browser.osName); // deprecated
+
+            if (isOldAndroid || isOldOperatingSystem || webglBrowserBlacklist[browser.name]) {
+                return false;
             }
+        } else {
+            // No system support
+            return false;
         }
-        return WEBGL_CONTEXT_NAME;
+        return true;
     }
 
+    function detectWebGl () {
+        if (!isWebGlCapable()) {
+            return null;
+        }
+
+        var contextName;
+        try {
+            var canvas = document.createElement("canvas"),
+                context = canvas.getContext(contextName = "webgl", webGlContextSettings);
+            if (!context) {
+                context = canvas.getContext(contextName = "experimental-webgl", webGlContextSettings); // IE
+                if (!context) {
+                    contextName = null;
+                }
+            }
+        } catch (e) {
+            // suppress warnings at FF
+            contextName = null;
+        }
+
+        return contextName ? {
+            contextName: contextName
+        } : null;
+
+    }
+
+    // Test globalCompositeOperation to work properly
     function testCanvas (sandbox, ctx) {
         sandbox.width = 226;
         sandbox.height = 256;
@@ -61,7 +82,7 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
         hasSvg: function () {
             if (!('svg' in tests)) {
                 tests.svg = document.implementation &&
-                document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
+                    document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
             }
             return tests.svg;
         },
@@ -75,25 +96,20 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
             return tests.canvas;
         },
 
-        hasWebgl: function () {
-            if (!window.WebGLRenderingContext || ym.env.browser.webglBlacklisted) {
-                return false;
-            }
-            // Кешировать поддержку WebGL нельзя. Он может выключиться на лету.
-            // В общем случае обратно уже не включается.
-            if (!('webgl' in tests) || tests['webgl']) {
-                var contextName = getWebglContextName(true);
-                tests.webgl = contextName != 'disabled'
+        hasWebGl: function () {
+            if (!('webgl' in tests)) {
+                tests.webgl = detectWebGl(true);
             }
             return tests.webgl;
         },
 
         hasVml: function () {
             if (!('vml' in tests)) {
-                var supported = false;
-                var topElement = document.createElement('div');
+                var supported = false,
+                    topElement = document.createElement('div'),
+                    testElement;
                 topElement.innerHTML = '<v:shape id="yamaps_testVML"  adj="1" />';
-                var testElement = topElement.firstChild;
+                testElement = topElement.firstChild;
                 if (testElement && testElement.style) {
                     testElement.style.behavior = 'url(#default#VML)';
                     supported = testElement ? typeof testElement.adj == 'object' : true;
@@ -104,6 +120,12 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
             return tests.vml;
         },
 
-        getWebglContextName: getWebglContextName
+        redetect: function () {
+            tests = {};
+        },
+
+        getWebGlContextName: function () {
+            return tests.webgl && tests.webgl.contextName;
+        }
     });
 });
