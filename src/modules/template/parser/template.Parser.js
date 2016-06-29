@@ -690,9 +690,7 @@ ym.modules.define("template.Parser", [
 
 
     Parser.prototype.builders[STYLE] = function (tree, parser) {
-        //------
         var nodes = tree.nodes,
-            left = tree.left,
             l,
             i = tree.left + 2,
             r = tree.right,
