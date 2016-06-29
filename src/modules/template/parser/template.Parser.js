@@ -421,7 +421,8 @@ ym.modules.define("template.Parser", [
         FOR = 2006,
         ENDFOR = 2007,
         ELSEIF = 2008,
-        STYLE = 2009;
+        STYLE = 2009,
+        ENDSTYLE = 2010;
 
     Parser.prototype.scanners['{{'] = {
         stopToken: '}}',
@@ -478,6 +479,9 @@ ym.modules.define("template.Parser", [
                     break;
                 case 'style':
                     tokens.push(STYLE, expression);
+                    break;
+                case 'endstyle':
+                    tokens.push(ENDSTYLE, expression);
             }
         }
     };
@@ -686,16 +690,54 @@ ym.modules.define("template.Parser", [
 
 
     Parser.prototype.builders[STYLE] = function (tree, parser) {
-        var value = tree.nodes[tree.left + 1][0];
-        if (ym.env.server.params.csp && ym.env.browser.name !== 'MSIE') {
-            tree.strings.push('data-ymaps-style="' + value + '"');
-            tree.flags.containsInlineStyle = true;
-        } else {
-            tree.strings.push('style="' + value + '"');
+        //------
+        var nodes = tree.nodes,
+            left = tree.left,
+            l,
+            i = tree.left + 2,
+            r = tree.right,
+            depth = 1,
+            endStylePosition,
+            node;
+
+        while (i < r) {
+            node = nodes[i];
+            if (node == STYLE) {
+                depth++;
+            } else if (node == ENDSTYLE) {
+                if (depth == 1) {
+                    endStylePosition = i;
+                    break;
+                }
+            }
+            i += 2;
         }
 
-        tree.strings.push(value);
-        tree.left += 2;
+        l = tree.left + 2;
+        r = endStylePosition;
+
+        if (l != r) {
+            var oldRight = tree.right,
+                oldEmpty = tree.empty;
+
+            tree.left = l;
+            tree.right = r;
+
+            if (ym.env.server.params.csp && ym.env.browser.name !== 'MSIE') {
+                tree.strings.push('data-ymaps-style="');
+                tree.flags.containsInlineStyle = true;
+            } else {
+                tree.strings.push('style="');
+            }
+
+            parser._buildTree(tree);
+            tree.strings.push('"');
+
+            tree.empty = tree.empty && oldEmpty;
+            tree.right = oldRight;
+        }
+
+        tree.left = endStylePosition + 2;
     };
 
     provide(Parser);
