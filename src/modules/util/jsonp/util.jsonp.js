@@ -5,7 +5,8 @@ ym.modules.define("util.jsonp", [
 ], function (provide, utilId, querystring, utilScript) {
     var exceededError = { message: 'timeoutExceeded' },
         scriptError = { message: 'scriptError' },
-        undefFunc = function () {};
+        undefFunc = function () {},
+        removeCallbackTimeouts = {};
 
     /**
      * @ignore
@@ -66,6 +67,7 @@ ym.modules.define("util.jsonp", [
                 return window[callbackName].promise;
             }
 
+            cancelCallbackRemove(callbackName);
             window[callbackName] = function (res) {
                 if (checkResponse) {
                     var error = !res || res.error ||
@@ -135,7 +137,7 @@ ym.modules.define("util.jsonp", [
         window[callbackName] = undefFunc;
         // удаляем функцию через большой интервал, т.к. содержимое удаленного тэга script может попытаться обратится
         // к этой функции, для этого и делаем заглушку undefFunc
-        setTimeout(function () {
+        removeCallbackTimeouts[callbackName] = setTimeout(function () {
             // IE не дает делать delete объектов window
             window[callbackName] = undefined;
             try {
@@ -143,6 +145,13 @@ ym.modules.define("util.jsonp", [
             } catch (e) {
             }
         }, 500);
+    }
+
+    function cancelCallbackRemove (callbackName) {
+        if (removeCallbackTimeouts[callbackName]) {
+            clearTimeout(removeCallbackTimeouts[callbackName]);
+            removeCallbackTimeouts[callbackName] = null;
+        }
     }
 
     provide(jsonp);
