@@ -15,10 +15,9 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
                     'Samsung Internet': true, // unstable
                     'AndroidBrowser': true    // unstable
                 },
-                isOldAndroid = browser.engine == "Webkit" && (+browser.engineVersion < +537), // unstable
-                isOldOperatingSystem = /^Windows (XP|Vista|Server 2003)/.test(browser.osName); // deprecated
+                isOldAndroid = browser.engine == "Webkit" && (+browser.engineVersion < +537); // unstable
 
-            if (isOldAndroid || isOldOperatingSystem || webglBrowserBlacklist[browser.name]) {
+            if (isOldAndroid || webglBrowserBlacklist[browser.name]) {
                 return false;
             }
         } else {
@@ -98,7 +97,7 @@ ym.modules.define('system.supports.graphics', [], function (provide) {
 
         hasWebGl: function () {
             if (!('webgl' in tests)) {
-                tests.webgl = detectWebGl(true);
+                tests.webgl = detectWebGl();
             }
             return tests.webgl;
         },
