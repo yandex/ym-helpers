@@ -1,6 +1,7 @@
 ym.modules.define('system.supports.csp', [], function (provide) {
-    // Если Blob не определен, браузер слишком старый
-    // и невозможно в полном объеме сделать все для поддержки csp.
-    var canSupportCsp = (typeof Blob != 'undefined');
-    provide(canSupportCsp);
+    // Нельзя явно определить, поддерживается ли в браузере CSP.
+    // Поэтому проверяем косвенно по наличию объекта Blob.
+    provide({
+        isSupported: typeof Blob != 'undefined'
+    });
 });

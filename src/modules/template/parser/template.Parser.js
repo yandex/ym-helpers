@@ -5,7 +5,7 @@
 ym.modules.define("template.Parser", [
     "util.id",
     "system.supports.csp"
-], function (provide, utilId, isCspSupported) {
+], function (provide, utilId, cspSupport) {
 
     // TODO хорошо бы перенести в отдельный модуль.
     // Главное не забыть в билдере подключить файл.
@@ -722,7 +722,7 @@ ym.modules.define("template.Parser", [
             tree.left = l;
             tree.right = r;
 
-            if (isCspSupported && ym.env.server.params.csp) {
+            if (cspSupport.isSupported && ym.env.server.params.csp) {
                 tree.strings.push('data-ymaps-style="');
                 tree.flags.containsInlineStyle = true;
             } else {
