@@ -3,8 +3,9 @@
  * Парсер шаблонов.
  */
 ym.modules.define("template.Parser", [
-    "util.id"
-], function (provide, utilId) {
+    "util.id",
+    "system.supports.csp"
+], function (provide, utilId, cspSupport) {
 
     // TODO хорошо бы перенести в отдельный модуль.
     // Главное не забыть в билдере подключить файл.
@@ -721,7 +722,7 @@ ym.modules.define("template.Parser", [
             tree.left = l;
             tree.right = r;
 
-            if (ym.env.server.params.csp && ym.env.browser.name !== 'MSIE') {
+            if (cspSupport.isSupported && ym.env.server.params.csp) {
                 tree.strings.push('data-ymaps-style="');
                 tree.flags.containsInlineStyle = true;
             } else {
