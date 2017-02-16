@@ -1,6 +1,6 @@
 {
   "name": "ym-helpers",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Useful modules for ym family",
   "author": "Yandex.Maps API Team <mapsapi-dev@yandex-team.ru>",
   "repository": {

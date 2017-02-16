@@ -1,4 +1,7 @@
-ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, nextTick) {
+ym.modules.define('system.provideCss', [
+    'system.nextTick',
+    'system.supports.csp'
+], function (provide, nextTick, cspSupport) {
     var newCssText = '',
     /*
      в слайсах IE 7 нельзя читать содержимое тега link MAPSAPI-4755
@@ -13,7 +16,7 @@ ym.modules.define('system.provideCss', ['system.nextTick'], function (provide, n
         tag,
         waitForNextTick = false,
         URL = window.URL || window.webkitURL || window.mozURL,
-        csp = ym.env.server.params.csp,
+        csp = cspSupport.isSupported && ym.env.server.params.csp,
         pasteAsLink = csp && !csp.style_nonce;
 
 
