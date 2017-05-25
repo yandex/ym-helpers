@@ -17,7 +17,8 @@ ym.modules.define('system.provideCss', [
         waitForNextTick = false,
         URL = window.URL || window.webkitURL || window.mozURL,
         csp = cspSupport.isSupported && ym.env.server.params.csp,
-        pasteAsLink = csp && !csp.style_nonce;
+        nonceSupported = cspSupport.isNonceSupported,
+        pasteAsLink = csp && (!csp.style_nonce || !nonceSupported);
 
 
     provide(function (cssText, callback) {
@@ -43,7 +44,7 @@ ym.modules.define('system.provideCss', [
             tag.type = "text/css";
             tag.rel = "stylesheet";
             tag.setAttribute && tag.setAttribute('data-ymaps', 'css-modules');
-            if (csp && csp.style_nonce) {
+            if (csp && nonceSupported && csp.style_nonce) {
                 tag.setAttribute && tag.setAttribute('nonce', csp.style_nonce);
             }
         }
