@@ -274,7 +274,7 @@ ym.modules.define('error', ['util.defineClass', 'util.extend'], function (provid
          * @name error.OperationUnawailableReject
          * @augments error.Reject
          */
-        var OperationUnawailableReject = createErrorClass('OperationUnawailableReject', 'Reject');
+        var OperationUnawailableReject = createErrorClass('OperationUnavailableReject', 'Reject');
         defineClass(OperationUnawailableReject, Reject);
     }
 
