@@ -271,11 +271,11 @@ ym.modules.define('error', ['util.defineClass', 'util.extend'], function (provid
         /**
          * Недоступная интерфейсная функциональность.
          * @class
-         * @name error.OperationUnawailableReject
+         * @name error.OperationUnavailableReject
          * @augments error.Reject
          */
-        var OperationUnawailableReject = createErrorClass('OperationUnawailableReject', 'Reject');
-        defineClass(OperationUnawailableReject, Reject);
+        var OperationUnavailableReject = createErrorClass('OperationUnavailableReject', 'Reject');
+        defineClass(OperationUnavailableReject, Reject);
     }
 
     /**
