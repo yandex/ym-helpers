@@ -16,7 +16,7 @@ ym.modules.define('system.provideCss', [
         tag,
         waitForNextTick = false,
         URL = window.URL || window.webkitURL || window.mozURL,
-        csp = cspSupport.isSupported && ym.env.server.params.csp,
+        csp = cspSupport.isSupported && ym.env.server && ym.env.server.params.csp,
         nonceSupported = cspSupport.isNonceSupported,
         pasteAsLink = csp && (!csp.style_nonce || !nonceSupported);
 
