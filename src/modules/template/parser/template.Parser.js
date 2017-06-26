@@ -722,7 +722,7 @@ ym.modules.define("template.Parser", [
             tree.left = l;
             tree.right = r;
 
-            if (cspSupport.isSupported && ym.env.server.params.csp) {
+            if (cspSupport.isSupported && ym.env.server && ym.env.server.params.csp) {
                 tree.strings.push('data-ymaps-style="');
                 tree.flags.containsInlineStyle = true;
             } else {
