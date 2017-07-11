@@ -5,8 +5,8 @@ ym.modules.define('system.supports.csp', [], function (provide) {
     var browser = ym.env ? ym.env.browser : null;
     provide({
         isSupported: (typeof Blob != 'undefined') && (typeof URL != 'undefined'),
-        isNonceSupported: browser ?
-            !(browser.name.search('Safari') != -1 && Number(browser.version.split('.')[0]) < 10) :
+        isNonceSupported: browser && browser.name && browser.version ?
+            !(browser.name.search('Safari') != -1 && parseInt(browser.version) < 10) :
             null
     });
 });
