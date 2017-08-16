@@ -41,7 +41,7 @@ ym.modules.define('test.system.provideCss', [
 
         it('The number of style tags should be greater by one after using provideCss()', function (done) {
             var styles = document.getElementsByTagName('style').length;
-            var eventListener = function(){
+            eventListener = function(){
                 styleElement = document.getElementsByTagName('style')[0];
 
                 expect(document.getElementsByTagName('style').length).to.be(styles + 1);
@@ -58,14 +58,14 @@ ym.modules.define('test.system.provideCss', [
 
         it('Must combine css', function (done) {
             var styles = document.getElementsByTagName('style').length;
-            var eventListener = function(){
+            eventListener = function(){
                 styleElement = document.getElementsByTagName('style')[0];
                 expect(document.getElementsByTagName('style').length).to.be(styles + 1);
 
                 expect(styleElement.type).to.be('text/css');
                 expect(styleElement.rel).to.be('stylesheet');
                 expect(styleElement.getAttribute('data-ymaps')).to.be('css-modules');
-                expect(styleElement.innerHTML).to.be(css + '\n/**/\n' + css + '\n/**/\n' + css + '\n/**/\n');
+		expect(styleElement.innerHTML).to.be(css + '\n/**/\n' + css + '\n/**/\n' + css + '\n/**/\n');
 
                 done();
             };
