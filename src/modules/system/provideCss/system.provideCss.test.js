@@ -65,7 +65,7 @@ ym.modules.define('test.system.provideCss', [
                 expect(styleElement.type).to.be('text/css');
                 expect(styleElement.rel).to.be('stylesheet');
                 expect(styleElement.getAttribute('data-ymaps')).to.be('css-modules');
-		expect(styleElement.innerHTML).to.be(css + '\n/**/\n' + css + '\n/**/\n' + css + '\n/**/\n');
+		        expect(styleElement.innerHTML).to.be(css + '\n/**/\n' + css + '\n/**/\n' + css + '\n/**/\n');
 
                 done();
             };
