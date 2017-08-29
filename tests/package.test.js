@@ -9,5 +9,6 @@ ym.modules.define('package.tests', [
     'test.createNs',
     'test.util.defineClass',
     'test.system.mergeImports',
-    'test.system.provideCss'
+    'test.system.provideCss',
+    'test.template.Parser'
 ], ym.modules.providePackage);
