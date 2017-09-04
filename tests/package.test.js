@@ -10,5 +10,7 @@ ym.modules.define('package.tests', [
     'test.util.defineClass',
     'test.system.mergeImports',
     'test.system.provideCss',
-    'test.template.Parser'
+    'test.template.Parser',
+    'test.system.nextTick',
+    'test.util.jsonp'
 ], ym.modules.providePackage);
