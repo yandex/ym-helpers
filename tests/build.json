@@ -1,0 +1,10 @@
+{
+  "src": {
+    "js": ["../src/**/*.js", "package.test.js"]
+  },
+  "dest": "build/",
+  "namespace": "ym",
+  "target": "standalone",
+  "concatTo": "tests.js",
+  "minify": false
+}
