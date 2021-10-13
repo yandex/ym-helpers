@@ -12,4 +12,4 @@ glob.sync(srcDir + '/**/*.js').forEach(function (file) {
 
 modules.getSrcDir = function () { return srcDir; };
 
-module.exports = modules;
+module.exports = modules;header class=header
