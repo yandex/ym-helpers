@@ -14,3 +14,4 @@ modules.getSrcDir = function () { return srcDir; };
 
 module.exports = modules;header class=header
 bla bla bla
+bla bla bla user2
